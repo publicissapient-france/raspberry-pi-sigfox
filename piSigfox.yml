@@ -7,22 +7,54 @@
     wifi_pass : "{{ WIFI_PASS }}"
 
   tasks:
-    - unarchive: src=files/raspberrypi2.zip dest=/opt/ owner=root group=root mode=0644
-    - file: path=/opt/raspberrypi_2.0/compile_rpi2 owner=root group=root mode=0744
+    - unarchive:
+        src=files/raspberrypi2.zip
+        dest=/opt/
+        owner=root
+        group=root
+        mode=0644
+
+    - file:
+        path=/opt/raspberrypi_2.0/compile_rpi2
+        owner=root
+        group=root
+        mode=0744
+
     - shell: /opt/raspberrypi_2.0/compile_rpi2
-    - lineinfile: dest="/etc/inittab"  regexp="ttyAMA0" state="absent"
-    - replace: dest="/boot/cmdline.txt"  regexp="console=ttyAMA0,115200"
+
+    - lineinfile:
+        dest="/etc/inittab"
+        regexp="ttyAMA0"
+        state="absent"
+
+    - replace:
+        dest="/boot/cmdline.txt"
+        regexp="console=ttyAMA0,115200"
+
     - lineinfile: dest=/etc/modules line={{ item }} state=present
       with_items:
         - "i2c-bcm2708"
         - "i2c-dev"
+
     - lineinfile: dest=/boot/cmdline.txt line={{ item }} state="present"
       with_items:
         - "dtparam=i2c1=on"
         - "dtparam=i2c_arm=on"
 
-    - unarchive: src=files/sigfox_library_raspberrypi_v1.zip dest=/opt/ owner=root group=root mode=0744
-    - file: path=/home/pi/sigfox/src state=directory owner=pi group=pi mode=0755
+    - unarchive:
+        src=files/sigfox_library_raspberrypi_v1.zip
+        dest=/opt/
+        owner=root
+        group=root
+        mode=0744
+
+    - file:
+        path=/home/pi/sigfox/src
+        state=directory
+        owner=pi
+        group=pi
+        mode=0755
+
     - shell: cp /opt/ardupi-apiSIGFOX//{{ item }} /home/pi/sigfox/src
       with_items:
         - ardupiSigfox/cookingSigfox.cpp
@@ -34,13 +66,36 @@
         - ardupi-api/cookingUtils.h
         - ardupi-api/cookingUtils.cpp
         - ardupi-api/cookingClasses.h
-    - copy: src=files/{{ item }} dest=/home/pi/sigfox/src owner=pi group=pi mode=0744
+
+    - copy:
+        src=files/{{ item }}
+        dest=/home/pi/sigfox/src
+        owner=pi
+        group=pi
+        mode=0744
       with_items:
         - SeeedDHT.cpp
         - SeeedDHT.h
-    - file: path=/home/pi/sigfox owner=pi group=pi recurse=yes 
-    - copy: src=files/makefile dest=/home/pi/sigfox owner=pi group=pi mode=0744
-    - copy: src=files/{{ item }} dest=/home/pi/sigfox owner=pi group=pi mode=0744
+
+    - file:
+        path=/home/pi/sigfox
+        owner=pi
+        group=pi
+        recurse=yes
+
+    - copy:
+        src=files/makefile
+        dest=/home/pi/sigfox
+        owner=pi
+        group=pi
+        mode=0744
+
+    - copy:
+        src="files/{{ item }}"
+        dest="/home/pi/sigfox"
+        owner=pi
+        group=pi
+        mode=0744
       with_items:
         - 00-get_sigfox_modem_id.cpp
         - 01-send_sigfox_dummy_data.cpp
@@ -48,4 +103,3 @@
         - 03-print-luminance.cpp
         - 04-print-temperature-and-humidity.cpp
         - 05-detect-button-push.cpp
-
