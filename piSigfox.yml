@@ -1,10 +1,6 @@
 ---
 - hosts: all
-  sudo: yes
-
-  vars:
-    raspbian_sd : "{{ RASPBIAN_SD }}"
-    wifi_pass : "{{ WIFI_PASS }}"
+  become: yes
 
   tasks:
     - unarchive:
@@ -20,26 +16,31 @@
         group=root
         mode=0744
 
-    - shell: /opt/raspberrypi_2.0/compile_rpi2
+    - name: compiling arduPi
+      shell: /opt/raspberrypi_2.0/compile_rpi2
 
-    - lineinfile:
-        dest="/etc/inittab"
-        regexp="ttyAMA0"
-        state="absent"
+    - name: erasing ttyAMA0
+      replace:
+        dest="{{ item.file }}"
+        regexp="{{ item.to_delete }}"
+      with_items:
+        - { file: "/etc/inittab", to_delete: "ttyAMA0" }
+        - { file: "/boot/cmdline.txt", to_delete: "console=ttyAMA0,115200" }
 
-    - replace:
-        dest="/boot/cmdline.txt"
-        regexp="console=ttyAMA0,115200"
-
-    - lineinfile: dest=/etc/modules line={{ item }} state=present
+    - modprobe:
+        name="{{ item }}
+        state=present
       with_items:
         - "i2c-bcm2708"
         - "i2c-dev"
 
-    - lineinfile: dest=/boot/cmdline.txt line={{ item }} state="present"
+    - lineinfile:
+        dest="/boot/cmdline.txt"
+        line="dtparam={{ item }}"
+        state=present
       with_items:
-        - "dtparam=i2c1=on"
-        - "dtparam=i2c_arm=on"
+        - "i2c1=on"
+        - "i2c_arm=on"
 
     - unarchive:
         src=files/sigfox_library_raspberrypi_v1.zip
