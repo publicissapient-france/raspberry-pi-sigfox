@@ -2,10 +2,6 @@
 - hosts: all
   sudo: yes
 
-  vars:
-    raspbian_sd : "{{ RASPBIAN_SD }}"
-    wifi_pass : "{{ WIFI_PASS }}"
-
   tasks:
     - unarchive: src=files/raspberrypi2.zip dest=/opt/ owner=root group=root mode=0644
     - file: path=/opt/raspberrypi_2.0/compile_rpi2 owner=root group=root mode=0744
@@ -48,4 +44,6 @@
         - 03-print-luminance.cpp
         - 04-print-temperature-and-humidity.cpp
         - 05-detect-button-push.cpp
+        - 06-send-sigfox-uplink.cpp
+        - 07-send-sigfox-bidir.cpp
 
