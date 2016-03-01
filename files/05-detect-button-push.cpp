@@ -3,7 +3,7 @@
 #include "arduPi.h"
 
 
-#define BUTTON_PIN = 7;
+#define BUTTON_PIN 7
 // Button
 int buttonState = 0;
 
@@ -16,6 +16,7 @@ void loop() {
 	buttonState = digitalRead(BUTTON_PIN);
 	if (buttonState == HIGH) {
     	printf("Button pressed\n");
+    	delay(1000);
 	}
 }
 

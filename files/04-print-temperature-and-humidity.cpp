@@ -4,9 +4,9 @@
 #include "SeeedDHT.h"
 
 //////////////////////////////////////////////
-#define DHT_PIN 8;
-#define DHT_TYPE 22;
-#define DHT_COUNT 16;
+#define DHT_PIN 8
+#define DHT_TYPE 22
+#define DHT_COUNT 16
 DHT dht(DHT_PIN, DHT_TYPE, DHT_COUNT);
 
 #define LUM_PIN 0

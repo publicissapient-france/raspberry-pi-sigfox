@@ -10,12 +10,12 @@
 //////////////////////////////////////////////
 uint8_t sock = SOCKET0;
 
-#define DHT_PIN 8;
-#define DHT_TYPE 22;
-#define DHT_COUNT 16;
+#define DHT_PIN 8
+#define DHT_TYPE 22
+#define DHT_COUNT 16
 DHT dht(DHT_PIN, DHT_TYPE, DHT_COUNT);
 
-#define BUTTON_PIN = 7;
+#define BUTTON_PIN 7
 // Button
 int buttonState = 0;
 
@@ -65,6 +65,17 @@ void setup() {
 	pinMode(BUTTON_PIN, INPUT);
     pinMode(LUM_PIN, INPUT);
     pinMode(DHT_PIN, INPUT);
+
+    status = Sigfox.ON(sock);
+    // Check status
+    if (status == 0)
+    {
+    printf("Switch ON OK\n");
+    }
+    else
+    {
+    printf("Switch ON ERROR\n");
+    }
     printf("*** Waiting for user action (push button) ***\n");
 }
 
@@ -74,7 +85,7 @@ void loop()
   if (buttonState == HIGH) {
     float h = dht.TemperatureHumidityRead(DHT_PIN, 'H');
     float t = dht.TemperatureHumidityRead(DHT_PIN, 'T');
-    float l = readLuminance(LUM_PIN);
+    float l = read_luminance(LUM_PIN);
 
     printf("***  Measures   ***\n");
     printf("Luminance : %f\n", l);

@@ -10,12 +10,12 @@
 //////////////////////////////////////////////
 uint8_t sock = SOCKET0;
 
-#define DHT_PIN 8;
-#define DHT_TYPE 22;
-#define DHT_COUNT 16;
+#define DHT_PIN 8
+#define DHT_TYPE 22
+#define DHT_COUNT 16
 DHT dht(DHT_PIN, DHT_TYPE, DHT_COUNT);
 
-#define BUTTON_PIN = 7;
+#define BUTTON_PIN 7
 // Button
 int buttonState = 0;
 
@@ -86,6 +86,17 @@ void setup() {
     ledsPin[GREEN_LED] = GREEN_LED_PIN;
     ledsPin[BLUE_LED_PIN] = BLUE_LED_PIN;
 
+    status = Sigfox.ON(sock);
+    // Check status
+    if (status == 0)
+    {
+    printf("Switch ON OK\n");
+    }
+    else
+    {
+    printf("Switch ON ERROR\n");
+    }
+
     printf("*** Waiting for user action (push button) ***\n");
 }
 
@@ -93,9 +104,9 @@ void loop()
 {
   buttonState = digitalRead(BUTTON_PIN);
   if (buttonState == HIGH) {
-    float h = dht.TemperatureHumidityRead(DHT_PIN, 'H');
-    float t = dht.TemperatureHumidityRead(DHT_PIN, 'T');
-    float l = readLuminance(LUM_PIN);
+    float h = dht.TemperatureHumidityRead(dhtPin, 'H');
+    float t = dht.TemperatureHumidityRead(dhtPin, 'T');
+    float l = read_luminance(lumPin);
 
     printf("***  Measures   ***\n");
     printf("Luminance : %f\n", l);
@@ -110,25 +121,24 @@ void loop()
     dataSigfox[2] = t_union.value1[1];
     dataSigfox[3] = t_union.value1[0];
 
-    dataSigfox[4] = (uint8_t) h;
-
     l_union.value2 = (uint16_t) l;
     dataSigfox[5] = l_union.value1[1];
     dataSigfox[6] = l_union.value1[0];
+    dataSigfox[4] = (uint8_t) h;
     size = 7;
 
     // Final Frame to send in "data"
     printf("Final Frame to send: 0x%X\n", dataSigfox);
 
     // Sending packet to Sigfox
-    status = Sigfox.send(dataSigfox,size);
+    status = Sigfox.sendACK(dataSigfox,size);
 
     // Check sending status
     if( status == 0 )
     {
       printf("Sigfox packet sent OK\n");
 
-      // TODO Check DEBUG
+      // DEBUG
       int led_state = (int)strtol(reinterpret_cast<const char*>(Sigfox._ackData), NULL, 16);
 
       int i = 0;
@@ -150,6 +160,10 @@ void loop()
       }
 
       printf("Back-End response: 0x%X\n", Sigfox._buffer);
+    }
+    else
+    {
+      printf("Sigfox packet sent ERROR\n");
     }
     printf("/// End of action ///\n");
     delay(1000);

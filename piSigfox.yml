@@ -1,42 +1,112 @@
 ---
 - hosts: all
-  sudo: yes
+  become: yes
+  user: pi
 
   tasks:
-    - unarchive: src=files/raspberrypi2.zip dest=/opt/ owner=root group=root mode=0644
-    - file: path=/opt/raspberrypi_2.0/compile_rpi2 owner=root group=root mode=0744
-    - shell: /opt/raspberrypi_2.0/compile_rpi2
-    - lineinfile: dest="/etc/inittab"  regexp="ttyAMA0" state="absent"
-    - replace: dest="/boot/cmdline.txt"  regexp="console=ttyAMA0,115200"
-    - lineinfile: dest=/etc/modules line={{ item }} state=present
+    - stat: path=/home/pi/sigfox/src/arduPi.o
+      register: ardupi_compiled
+
+    - unarchive:
+        src=files/raspberrypi2.zip
+        dest=/opt/
+        owner=root
+        group=root
+        mode=0644
+      when: ardupi_compiled.stat.exists == False
+
+    - file:
+        path=/opt/raspberrypi_2.0/compile_rpi2
+        owner=root
+        group=root
+        mode=0744
+      when: ardupi_compiled.stat.exists == False
+
+    - name: compiling arduPi
+      shell: /opt/raspberrypi_2.0/compile_rpi2
+      args:
+          chdir: /opt/raspberrypi_2.0/
+      when: ardupi_compiled.stat.exists == False
+
+    - name: erasing ttyAMA0
+      replace:
+        dest="{{ item.file }}"
+        regexp="{{ item.to_delete }}"
+      with_items:
+        - { file: "/etc/inittab", to_delete: "ttyAMA0" }
+        - { file: "/boot/cmdline.txt", to_delete: "console=ttyAMA0,115200" }
+      ignore_errors: yes
+
+    - modprobe:
+        name="{{ item }}"
+        state=present
       with_items:
         - "i2c-bcm2708"
         - "i2c-dev"
-    - lineinfile: dest=/boot/cmdline.txt line={{ item }} state="present"
-      with_items:
-        - "dtparam=i2c1=on"
-        - "dtparam=i2c_arm=on"
 
-    - unarchive: src=files/sigfox_library_raspberrypi_v1.zip dest=/opt/ owner=root group=root mode=0744
-    - file: path=/home/pi/sigfox/src state=directory owner=pi group=pi mode=0755
-    - shell: cp /opt/ardupi-apiSIGFOX//{{ item }} /home/pi/sigfox/src
+    - lineinfile:
+        dest="/boot/cmdline.txt"
+        line="dtparam={{ item }}"
+        state=present
       with_items:
-        - ardupiSigfox/cookingSigfox.cpp
-        - ardupiSigfox/cookingSigfox.h
-        - ardupi-api/arduPi.h
-        - ardupi-api/arduPi.o
-        - ardupi-api/cookingUART.h
-        - ardupi-api/cookingUART.cpp
-        - ardupi-api/cookingUtils.h
-        - ardupi-api/cookingUtils.cpp
-        - ardupi-api/cookingClasses.h
-    - copy: src=files/{{ item }} dest=/home/pi/sigfox/src owner=pi group=pi mode=0744
+        - "i2c1=on"
+        - "i2c_arm=on"
+
+    - unarchive:
+        src=files/sigfox_library_raspberrypi_v1.zip
+        dest=/opt/
+        owner=root
+        group=root
+        mode=0744
+
+    - file:
+        path=/home/pi/sigfox/src
+        state=directory
+        owner=pi
+        group=pi
+        mode=0755
+
+    - shell: cp /opt/{{ item }} /home/pi/sigfox/src
+      with_items:
+        - ardupi-apiSIGFOX/ardupiSigfox/cookingSigfox.cpp
+        - ardupi-apiSIGFOX/ardupiSigfox/cookingSigfox.h
+        - ardupi-apiSIGFOX/ardupi-api/cookingUART.h
+        - ardupi-apiSIGFOX/ardupi-api/cookingUART.cpp
+        - ardupi-apiSIGFOX/ardupi-api/cookingUtils.h
+        - ardupi-apiSIGFOX/ardupi-api/cookingUtils.cpp
+        - ardupi-apiSIGFOX/ardupi-api/cookingClasses.h
+        - raspberrypi_2.0/ardupi2.0/arduPi.h
+        - raspberrypi_2.0/ardupi2.0/arduPi.o
+
+    - copy:
+        src=files/{{ item }}
+        dest=/home/pi/sigfox/src
+        owner=pi
+        group=pi
+        mode=0744
       with_items:
         - SeeedDHT.cpp
         - SeeedDHT.h
-    - file: path=/home/pi/sigfox owner=pi group=pi recurse=yes 
-    - copy: src=files/makefile dest=/home/pi/sigfox owner=pi group=pi mode=0744
-    - copy: src=files/{{ item }} dest=/home/pi/sigfox owner=pi group=pi mode=0744
+
+    - file:
+        path=/home/pi/sigfox
+        owner=pi
+        group=pi
+        recurse=yes
+
+    - copy:
+        src=files/makefile
+        dest=/home/pi/sigfox
+        owner=pi
+        group=pi
+        mode=0744
+
+    - copy:
+        src="files/{{ item }}"
+        dest="/home/pi/sigfox"
+        owner=pi
+        group=pi
+        mode=0744
       with_items:
         - 00-get_sigfox_modem_id.cpp
         - 01-send_sigfox_dummy_data.cpp
@@ -46,4 +116,3 @@
         - 05-detect-button-push.cpp
         - 06-send-sigfox-uplink.cpp
         - 07-send-sigfox-bidir.cpp
-
