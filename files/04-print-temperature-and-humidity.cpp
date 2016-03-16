@@ -43,7 +43,7 @@ void loop() {
   	float t = dht.TemperatureHumidityRead(DHT_PIN, 'T');
 
 	printf("***  Measures   ***\n");
-    printf("Humidify : %f %\n", h);
+    printf("Humidity : %f %\n", h);
     printf("Temperature : %f°C\n", t);
 
     delay(1000);

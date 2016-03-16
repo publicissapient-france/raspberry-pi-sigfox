@@ -87,6 +87,8 @@
       with_items:
         - SeeedDHT.cpp
         - SeeedDHT.h
+        - cookingSigfox.h
+        - cookingSigfox.cpp
 
     - file:
         path=/home/pi/sigfox

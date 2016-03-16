@@ -74,7 +74,7 @@ float read_luminance(uint8_t apin) {
 }
 
 void setup() {
-	pinMode(BUTTON_PIN, INPUT);
+    pinMode(BUTTON_PIN, INPUT);
     pinMode(LUM_PIN, INPUT);
     pinMode(DHT_PIN, INPUT);
 
@@ -82,19 +82,19 @@ void setup() {
     pinMode(GREEN_LED_PIN, OUTPUT);
     pinMode(BLUE_LED_PIN, OUTPUT);
 
-    ledsPin[RED_LED] = RED_LED_PIN;
-    ledsPin[GREEN_LED] = GREEN_LED_PIN;
-    ledsPin[BLUE_LED_PIN] = BLUE_LED_PIN;
+    ledsPin[0] = RED_LED_PIN;
+    ledsPin[1] = GREEN_LED_PIN;
+    ledsPin[2] = BLUE_LED_PIN;
 
     status = Sigfox.ON(sock);
     // Check status
     if (status == 0)
     {
-    printf("Switch ON OK\n");
+    printf("***  Switch Sigfox ON *** \n");
     }
     else
     {
-    printf("Switch ON ERROR\n");
+    printf("Switch Sigfox ON : ERROR\n");
     }
 
     printf("*** Waiting for user action (push button) ***\n");
@@ -104,15 +104,15 @@ void loop()
 {
   buttonState = digitalRead(BUTTON_PIN);
   if (buttonState == HIGH) {
-    float h = dht.TemperatureHumidityRead(dhtPin, 'H');
-    float t = dht.TemperatureHumidityRead(dhtPin, 'T');
-    float l = read_luminance(lumPin);
+    float h = dht.TemperatureHumidityRead(DHT_PIN, 'H');
+    float t = dht.TemperatureHumidityRead(DHT_PIN, 'T');
+    float l = read_luminance(LUM_PIN);
 
     printf("***  Measures   ***\n");
-    printf("Luminance : %f\n", l);
-    printf("Humidify : %f\n", h);
-    printf("Temperature : %f\n", t);
-    printf("Send to Sigfox\n");
+    printf("Luminance : %f lux\n", l);
+    printf("Humidity : %f %\n", h);
+    printf("Temperature : %f°C\n", t);
+    printf("*** Sending data to Sigfox ***\n");
 
     // fill data array
     t_union.value2 = t;
@@ -128,7 +128,7 @@ void loop()
     size = 7;
 
     // Final Frame to send in "data"
-    printf("Final Frame to send: 0x%X\n", dataSigfox);
+    //printf("Final Frame to send: 0x%X\n", dataSigfox);
 
     // Sending packet to Sigfox
     status = Sigfox.sendACK(dataSigfox,size);
@@ -136,30 +136,34 @@ void loop()
     // Check sending status
     if( status == 0 )
     {
-      printf("Sigfox packet sent OK\n");
+      printf("*** Sigfox packet sent ***\n");
 
-      // DEBUG
       int led_state = (int)strtol(reinterpret_cast<const char*>(Sigfox._ackData), NULL, 16);
 
+      printf("*** Sigfox downlink packet received ***\n");
+
+      /*
+      // DEBUG
       int i = 0;
       for(;i < 24; i++) {
         printf("%c", Sigfox._ackData[i]);
       }
+      */
 
-      printf("\nLed state : %d", led_state);
+      //printf("\nLed state : %d", led_state);
 
-      i = 0;
-      for(;i <= 3; i++) {
+      int i = 0;
+      for(;i < 3; i++) {
         if(LED_IS_ON(i, led_state)) {
-          printf("led %d is on\n", i);
+          printf("Led wired on pin %d is on\n", ledsPin[i]);
           digitalWrite(ledsPin[i], HIGH);
         } else {
-          printf("%d pin is off\n", ledsPin[i]);
+          printf("Led wired on pin %d is off\n", ledsPin[i]);
           digitalWrite(ledsPin[i], LOW);
-          }
+        }
       }
 
-      printf("Back-End response: 0x%X\n", Sigfox._buffer);
+      //printf("Back-End response: 0x%X\n", Sigfox._buffer);
     }
     else
     {

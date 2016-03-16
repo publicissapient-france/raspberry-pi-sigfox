@@ -70,11 +70,11 @@ void setup() {
     // Check status
     if (status == 0)
     {
-    printf("Switch ON OK\n");
+    printf("***  Switch Sigfox ON *** \n");
     }
     else
     {
-    printf("Switch ON ERROR\n");
+    printf("Switch Sigfox ON : ERROR\n");
     }
     printf("*** Waiting for user action (push button) ***\n");
 }
@@ -88,10 +88,10 @@ void loop()
     float l = read_luminance(LUM_PIN);
 
     printf("***  Measures   ***\n");
-    printf("Luminance : %f\n", l);
-    printf("Humidify : %f\n", h);
-    printf("Temperature : %f\n", t);
-    printf("Send to Sigfox\n");
+    printf("Luminance : %f lux\n", l);
+    printf("Humidity : %f %\n", h);
+    printf("Temperature : %f°C\n", t);
+    printf("*** Sending data to Sigfox ***\n");
 
     // fill data array
     t_union.value2 = t;
@@ -108,7 +108,7 @@ void loop()
     size = 7;
 
     // Final Frame to send in "data"
-    printf("Final Frame to send: 0x%X\n", dataSigfox);
+    //printf("Final Frame to send: 0x%X\n", dataSigfox);
 
     // Sending packet to Sigfox
     status = Sigfox.send(dataSigfox,size);
@@ -116,13 +116,13 @@ void loop()
     // Check sending status
     if( status == 0 )
     {
-      printf("Sigfox packet sent OK\n");
+      printf("*** Sigfox packet sent ***\n");
     }
     else
     {
-      printf("Sigfox packet sent ERROR\n");
+      printf("*** Sigfox packet sent ERROR ***\n");
     }
-    printf("/// End of action ///\n");
+    printf("*** Waiting for user action (push button) ***\n");
     delay(1000);
   }
 }
